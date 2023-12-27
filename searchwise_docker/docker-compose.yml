@@ -1,0 +1,48 @@
+###############################################################################
+#                          Generated on phpdocker.io                          #
+###############################################################################
+version: '3.1'
+services:
+    searchwise-elasticvue:
+        image: 'cars10/elasticvue'
+        ports:
+            - '8188:8080'
+        networks:
+            - mynetwork
+    searchwise-elasticsearch:
+        image: docker-repo.nowaera.pl/searchwise-elastic:8.11.3
+        ports:
+            - '9200:9200'
+            - '9300:9300'
+        environment:
+            - discovery.type=single-node
+            - xpack.security.enabled=false
+            - ELASTIC_PASSWORD=elastic
+            - ELASTIC_USERNAME=elastic
+            - ELASTICSEARCH_PASSWORD=elastic
+            - ELASTICSEARCH_USERNAME=elastic
+        networks:
+            - mynetwork
+    searchwise-webserver:
+        container_name: searchwise_nginx
+        image: 'nginx:alpine'
+        working_dir: /application
+        volumes:
+            - './searchwise:/application'
+            - './phpdocker/nginx/nginx.conf:/etc/nginx/conf.d/default.conf'
+        ports:
+            - '8110:80'
+        networks:
+            - mynetwork
+    searchwise-php-fpm:
+        container_name: searchwise_php_fpm
+        build: phpdocker/php-fpm
+        working_dir: /application
+        volumes:
+            - './searchwise:/application'
+            - './phpdocker/php-fpm/php-ini-overrides.ini:/etc/php/8.2/fpm/conf.d/99-overrides.ini'
+        networks:
+            - mynetwork
+networks:
+  mynetwork:
+    name: mynetwork

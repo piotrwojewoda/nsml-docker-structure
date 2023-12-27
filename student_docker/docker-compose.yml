@@ -1,0 +1,48 @@
+###############################################################################
+#                          Generated on phpdocker.io                          #
+###############################################################################
+version: '3.1'
+services:
+    progress-redis:
+        container_name: progress_redis_container
+        image: 'redis:alpine'
+        networks:
+            - mynetwork
+    progress-mariadb:
+        container_name: progress_maria
+        image: 'mariadb:11.0'
+        working_dir: /application
+        volumes:
+            - '.:/application'
+        environment:
+            - MYSQL_ROOT_PASSWORD=maria
+            - MYSQL_DATABASE=prog
+            - MYSQL_USER=maria
+            - MYSQL_PASSWORD=maria
+        ports:
+            - '8005:3306'
+        networks:
+            - mynetwork
+    progress-nginx:
+        container_name: progress_nginx
+        image: 'nginx:alpine'
+        working_dir: /application
+        volumes:
+            - './student-progress:/application'
+            - './phpdocker/nginx/nginx.conf:/etc/nginx/conf.d/default.conf'
+        ports:
+            - '8002:80'
+        networks:
+            - mynetwork
+    progress-php-fpm:
+        container_name: progress_php_fpm
+        build: phpdocker/php-fpm
+        working_dir: /application
+        volumes:
+            - './student-progress:/application'
+            - './phpdocker/php-fpm/php-ini-overrides.ini:/etc/php/8.2/fpm/conf.d/99-overrides.ini'
+        networks:
+            - mynetwork
+networks:
+  mynetwork:
+    name: mynetwork

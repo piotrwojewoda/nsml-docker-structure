@@ -1,0 +1,50 @@
+###############################################################################
+#                          Generated on phpdocker.io                          #
+###############################################################################
+version: '3.1'
+services:
+#    nsml-redis:
+#        image: 'redis:alpine'
+#        container_name: nsml_redis
+#        ports:
+#            - "6379:6379"
+    mariadb:
+        container_name: nsml_mysql
+        image: 'mariadb:11.0'
+        working_dir: /application
+        volumes:
+            - '.:/application'
+        environment:
+            - MYSQL_ROOT_PASSWORD=nsml
+            - MYSQL_DATABASE=nsml
+            - MYSQL_USER=nsml
+            - MYSQL_PASSWORD=nsml
+        ports:
+            - '8083:3306'
+        networks:
+            - mynetwork
+
+    nsml-nginx:
+        container_name: nsml_nginx
+        image: 'nginx:alpine'
+        working_dir: /application
+        volumes:
+            - './nsml-backend:/application'
+            - './phpdocker/nginx/nginx.conf:/etc/nginx/conf.d/default.conf'
+        ports:
+            - '8080:80'
+        networks:
+            - mynetwork
+
+    nsml-php-fpm:
+        container_name: nsml_php_fpm
+        build: phpdocker/php-fpm
+        working_dir: /application
+        volumes:
+            - './nsml-backend:/application'
+            - './phpdocker/php-fpm/php-ini-overrides.ini:/etc/php/8.2/fpm/conf.d/99-overrides.ini'
+        networks:
+            - mynetwork
+networks:
+  mynetwork:
+    name: mynetwork
